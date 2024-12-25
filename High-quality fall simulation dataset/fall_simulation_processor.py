@@ -1,33 +1,33 @@
 import os
 import cv2
+import yaml
 import json
 import random
 import numpy as np
 import mediapipe as mp
 
 import sys
-sys.path.append("../")
+sys.path.append("../Dataset Tools")
 from landmark_extractor import LandmarkExtractor
 
 '''
-Le2i Dataset structure
-citation: https://www.kaggle.com/datasets/tuyenldvn/falldataset-imvia
-6 folders, each one  with a falling scenario
-Label all activities as '1' or '0' after checking
-
-Read from each sigle folder, there is another nested folder with the 'Videos' folder get landmarks and wrap into temporal sequences of 3 seconds
+HIGH quality fall simulation data
+citation: https://iiw.kuleuven.be/onderzoek/advise/datasets#High%20Quality%20Fall%20Simulation%20Data
 '''
 
 
 def process_dataset():
+
+    config_params = load_config("config.yaml")
+
     landmark_extractor = LandmarkExtractor()
 
     previous_landmarks = None
 
-    sequence_length = 90
+    sequence_length = config_params['dataset_processor_params']['cam_fps'] * config_params['dataset_processor_params']['sequence_length']
 
     data = []
-    dataset_path = "/home/autonomouslab/Downloads/High_quality_fall/Fall_Simulation_Data/1"
+    dataset_path = config_params['dataset_processor_params']['dataset_path']
 
     for video_sequence in sorted(os.listdir(dataset_path)):
         print(f"Processing sequence {video_sequence}")
@@ -66,16 +66,7 @@ def process_dataset():
             ret, image = video_cap.read()
             frames_counter += 1
 
-            if frames_counter == 2000:
-                break
-
-        skip = int(15)
-
-        if len(queue) > 200:
-            skip = int(30)
-
-        if len(queue) > 1000:
-            skip = int(60)
+        skip = int(sequence_length - config_params['dataset_processor_params']['overlapping_frame_window']) # Set how many frames to skip when moving to next sequence
 
         for i in range(0, len(queue) - sequence_length + 1, skip):
             print("New sequence...")
@@ -115,12 +106,11 @@ def process_dataset():
             else:
                 print("Discarded")
 
-    dump_json(data)       
+    dump_json(data, config_params['dataset_processor_params']['out_path'])       
 
 
 
-def dump_json(data):
-    out_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/Data_Files/fall_simulation_dataset.json"
+def dump_json(data, out_path):
 
     with open(out_path, 'w') as json_file:
         json_file.write('[\n')
@@ -175,6 +165,16 @@ def check_body_landmarks(coords):
             elif coords[key][0] == float(0) and coords[key][1] == float(0):
                 return False, key
     return True, "None"
+
+
+def load_config(file_path):
+    with open(file_path, 'r') as file:
+        try:
+            config = yaml.safe_load(file)
+            return config
+        except yaml.YAMLError as e:
+            print(f"Error loading YAML file: {e}")
+            return None
 
 
 if __name__ == "__main__":

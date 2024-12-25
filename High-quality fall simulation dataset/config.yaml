@@ -1,0 +1,8 @@
+# HIGH quality fall simulation data config.yaml
+
+dataset_processor_params:
+  cam_fps: 30
+  sequence_length: 3
+  overlapping_frame_window : 75
+  dataset_path : "~/Downloads/High_quality_fall/Fall_Simulation_Data/1"
+  out_path : "~/Fall_detection_dataset/High-quality fall simulation dataset/out/fall_simulation_dataset.json"
