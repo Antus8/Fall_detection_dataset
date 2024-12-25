@@ -1,0 +1,8 @@
+# Le2i config.yaml
+
+dataset_processor_params:
+  cam_fps: 30
+  sequence_length: 3
+  overlapping_frame_window : 75
+  dataset_path : "~/Downloads/Le2i/Office"
+  out_path : "~/Fall_detection_dataset/Le2i dataset/out/le2i_office.json"
