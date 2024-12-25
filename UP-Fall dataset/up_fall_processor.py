@@ -1,12 +1,13 @@
 import os
 import cv2
+import yaml
 import json
 import random
 import numpy as np
 import mediapipe as mp
 
 import sys
-sys.path.append("../")
+sys.path.append("../Dataset Tools")
 from landmark_extractor import LandmarkExtractor
 
 '''
@@ -32,16 +33,19 @@ TODO: a huge inter-dataset shuffle will be needed to avoid group biasing
 
 
 def main():
+
+    config_params = load_config("config.yaml")
+
     landmark_extractor = LandmarkExtractor()
 
     previous_landmarks = None
 
-    sequence_length = 90
-    frames_counter = 0
+    sequence_length = config_params['dataset_processor_params']['cam_fps'] * config_params['dataset_processor_params']['sequence_length']
 
     data = []
+    dataset_path = config_params['dataset_processor_params']['dataset_path']
 
-    dataset_path = "/home/autonomouslab/Downloads/UPFallDataset"
+ 
     for folder in sorted(os.listdir(dataset_path)):
         # Process each experiment (in a separate folder)
         queue = []
@@ -71,8 +75,10 @@ def main():
             labels.append(1)
             images.append(image)
         
+        skip = int(sequence_length - config_params['dataset_processor_params']['overlapping_frame_window']) # Set how many frames to skip when moving to next sequence
+
         # At the end of a single experiment, check all extracted sequence and decide if consistent or not
-        for i in range(0, len(queue) - sequence_length + 1, int(15)):
+        for i in range(0, len(queue) - sequence_length + 1, skip):
             print("New sequence...")
             print(f"Going from {i} to {i+sequence_length}")
             row = []
@@ -98,17 +104,18 @@ def main():
                 print(f"Dataset has now {len(data)} samples")
                 print(f"Each sample has {len(data[-1])} elements")
                 print(f"Each element has {len(data[-1][0])} elements")
-                
+            
+            elif ques == "s":
+                break
+
             else:
                 print("Discarded")
-
-    dump_json(data)       
-
+    dump_json(data, config_params['dataset_processor_params']['out_path'])       
 
 
-def dump_json(data):
-    out_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/fall-up.json"
 
+def dump_json(data, out_path):
+    
     with open(out_path, 'w') as json_file:
         json_file.write('[\n')
         for row_idx, row in enumerate(data):
@@ -162,6 +169,16 @@ def check_body_landmarks(coords):
             elif coords[key][0] == float(0) and coords[key][1] == float(0):
                 return False, key
     return True, "None"
+
+
+def load_config(file_path):
+    with open(file_path, 'r') as file:
+        try:
+            config = yaml.safe_load(file)
+            return config
+        except yaml.YAMLError as e:
+            print(f"Error loading YAML file: {e}")
+            return None
 
 
 if __name__ == "__main__":
