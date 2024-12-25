@@ -3,8 +3,8 @@ import json
 import random
 
 def main():
-    input_directory = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/Data_Files"
-    out_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/final_merged_dataset.json"
+    input_directory = "~/Fall_detection_dataset/Dataset Tools/Data_Files"
+    out_path = "~/Fall_detection_dataset/Dataset Tools/out/final_merged_dataset.json"
     global_dataset = []
     tot_samples = 0
 

@@ -13,16 +13,15 @@ class DatasetCreator:
         self.landmark_extractor = LandmarkExtractor()
         self.landmarks_keys = ['front_face','left_wrist','right_wrist','left_shoulder','right_shoulder','left_hip','right_hip','left_knee','right_knee','right_ankle','left_ankle']
 
-        # Get fps to compute how many frames to check to cover a video sequence of 5 seconds
         self.fps = self.camera_channel.get(cv2.CAP_PROP_FPS)
-        self.coverage = 3
+        self.coverage = 3 # set sequence length in seconds
         self.sequence_length = int(self.fps * self.coverage)
 
         self.queue = []
         self.labels = []
 
-        self.frames_counter = 0 # Now just register 10000 frames for a fake dataset to create the model
-        self.out_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/dataset.json"
+        self.frames_counter = 0 # Set video length to be packed in the dataset
+        self.out_path = "~/Fall_detection_dataset/Dataset Tools/out/custom_dataset.json"
         self.images_queue = []
 
 

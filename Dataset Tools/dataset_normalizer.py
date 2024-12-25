@@ -6,8 +6,8 @@ import numpy as np
 
 class DatasetNormalizer:
     def __init__(self):
-        self.in_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/final_merged_dataset.json"
-        self.out_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/final_normalized_dataset.json"
+        self.in_path = "~/Fall_detection_dataset/Dataset Tools/out/final_merged_dataset.json"
+        self.out_path = "~/Fall_detection_dataset/Dataset Tools/out/final_normalized_dataset.json"
 
     def normalize(self):
         with open(self.in_path, 'r') as json_file:
