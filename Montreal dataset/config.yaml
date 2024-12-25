@@ -1,0 +1,8 @@
+# Montreal dataset config.yaml
+
+dataset_processor_params:
+  cam_fps: 30
+  sequence_length: 3
+  overlapping_frame_window : 75
+  dataset_path : "~/Downloads/montreal_dataset"
+  out_path : "~/Fall_detection_dataset/Montreal dataset/out/montreal.json"
