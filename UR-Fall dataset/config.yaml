@@ -1,0 +1,12 @@
+# UR-Fall dataset config.yaml
+
+dataset_processor_params:
+  cam_fps: 30
+  sequence_length: 3
+  overlapping_frame_window : 75
+
+  activity : "fall" # "adl"
+
+  adl_dataset_path : "~/Downloads/URFall/adl_sequences"
+  fall_dataset_path : "~/Downloads/URFall/fall_sequences"
+  out_path : "~/Fall_detection_dataset/UR-Fall dataset/out/ur_fall_FALL.json"

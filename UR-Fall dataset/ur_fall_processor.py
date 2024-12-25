@@ -1,12 +1,13 @@
 import os
 import cv2
+import yaml
 import json
 import random
 import numpy as np
 import mediapipe as mp
 
 import sys
-sys.path.append("../")
+sys.path.append("../Dataset Tools")
 from landmark_extractor import LandmarkExtractor
 
 '''
@@ -19,24 +20,23 @@ Read from each sigle folder, get landmarks and wrap into temporal sequences of 3
 '''
 
 
-def process_adl_videos():
+def process_adl_videos(config_params):
+
     landmark_extractor = LandmarkExtractor()
 
     previous_landmarks = None
 
-    sequence_length = 90
-    frames_counter = 0
+    sequence_length = config_params['dataset_processor_params']['cam_fps'] * config_params['dataset_processor_params']['sequence_length']
 
     data = []
+    dataset_path = config_params['dataset_processor_params']['adl_dataset_path']
 
-    dataset_path = "/home/autonomouslab/Downloads/URFall/adl_sequences"
     for folder in sorted(os.listdir(dataset_path)):
         # Process each experiment (in a separate folder)
         queue = []
         bl = []
         labels = []
         images = []
-
 
         for image in sorted(os.listdir(os.path.join(dataset_path, folder))):
             image = cv2.imread(os.path.join(dataset_path, folder, image))
@@ -60,8 +60,10 @@ def process_adl_videos():
                 labels.append(0)
                 images.append(image)
         
+        skip = int(sequence_length - config_params['dataset_processor_params']['overlapping_frame_window']) # Set how many frames to skip when moving to next sequence
+
         # At the end of a single experiment, check all extracted sequence and decide if consistent or not
-        for i in range(0, len(queue) - sequence_length + 1, int(15)):
+        for i in range(0, len(queue) - sequence_length + 1, skip):
             print("New sequence...")
             print(f"Going from {i} to {i+sequence_length}")
             row = []
@@ -87,25 +89,27 @@ def process_adl_videos():
                 print(f"Dataset has now {len(data)} samples")
                 print(f"Each sample has {len(data[-1])} elements")
                 print(f"Each element has {len(data[-1][0])} elements")
+
+            elif ques == "s":
+                break
                 
             else:
                 print("Discarded")
-
-    dump_json(data) 
-
+    dump_json(data, config_params['dataset_processor_params']['out_path']) 
 
 
-def process_fall_videos():
+
+def process_fall_videos(config_params):
+
     landmark_extractor = LandmarkExtractor()
 
     previous_landmarks = None
 
-    sequence_length = 90
-    frames_counter = 0
+    sequence_length = config_params['dataset_processor_params']['cam_fps'] * config_params['dataset_processor_params']['sequence_length']
 
     data = []
+    dataset_path = config_params['dataset_processor_params']['fall_dataset_path']
 
-    dataset_path = "/home/autonomouslab/Downloads/URFall/fall_sequences"
     for folder in sorted(os.listdir(dataset_path)):
         # Process each experiment (in a separate folder)
         queue = []
@@ -135,8 +139,10 @@ def process_fall_videos():
             labels.append(1)
             images.append(image)
         
+        skip = int(sequence_length - config_params['dataset_processor_params']['overlapping_frame_window']) # Set how many frames to skip when moving to next sequence
+
         # At the end of a single experiment, check all extracted sequence and decide if consistent or not
-        for i in range(0, len(queue) - sequence_length + 1, int(15)):
+        for i in range(0, len(queue) - sequence_length + 1, skip):
             print("New sequence...")
             print(f"Going from {i} to {i+sequence_length}")
             row = []
@@ -162,16 +168,17 @@ def process_fall_videos():
                 print(f"Dataset has now {len(data)} samples")
                 print(f"Each sample has {len(data[-1])} elements")
                 print(f"Each element has {len(data[-1][0])} elements")
+
+            elif ques == "s":
+                break
                 
             else:
                 print("Discarded")
-
-    dump_json(data)       
-
+    dump_json(data, config_params['dataset_processor_params']['out_path'])       
 
 
-def dump_json(data):
-    out_path = "/home/autonomouslab/Desktop/assistive_robodog/Perception/Dataset/ur_fall_FALL.json"
+
+def dump_json(data, out_path):
 
     with open(out_path, 'w') as json_file:
         json_file.write('[\n')
@@ -228,5 +235,20 @@ def check_body_landmarks(coords):
     return True, "None"
 
 
+def load_config(file_path):
+    with open(file_path, 'r') as file:
+        try:
+            config = yaml.safe_load(file)
+            return config
+        except yaml.YAMLError as e:
+            print(f"Error loading YAML file: {e}")
+            return None
+
+
 if __name__ == "__main__":
-    process_fall_videos()
+    config_params = load_config("config.yaml")
+
+    if config_params['dataset_processor_params']['activity'] == "adl":
+        process_adl_videos(config_params)
+    else:
+        process_fall_videos(config_params)
